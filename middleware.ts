@@ -6,8 +6,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except static assets + image optimizer.
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  // Only run on the routes that actually need an auth session. Public pages
+  // (home, donate, food-banks) skip middleware entirely, so a middleware issue
+  // can never take down the public site. These routes are also guarded at the
+  // page level, so security doesn't depend on middleware alone.
+  matcher: ["/admin/:path*", "/volunteer/dashboard/:path*"],
 };
