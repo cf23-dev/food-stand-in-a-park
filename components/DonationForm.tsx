@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import { Alert, Spinner } from "./ui";
@@ -30,6 +30,14 @@ export function DonationForm() {
   const [error, setError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [address, setAddress] = useState("");
+  // Earliest selectable pickup date = today + 2 days, so there's time to arrange
+  // logistics. Computed after mount to avoid an SSR/client hydration mismatch.
+  const [minDate, setMinDate] = useState("");
+  useEffect(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    setMinDate(d.toLocaleDateString("en-CA")); // YYYY-MM-DD in local time
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -138,7 +146,16 @@ export function DonationForm() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="pickup_date" className="label">Pickup date</label>
-          <input id="pickup_date" name="pickup_date" type="date" className="input" />
+          <input
+            id="pickup_date"
+            name="pickup_date"
+            type="date"
+            className="input"
+            min={minDate || undefined}
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Please schedule at least 2 days out so we can arrange a volunteer and the drop-off.
+          </p>
         </div>
         <div>
           <label htmlFor="pickup_window" className="label">Pickup time window</label>
