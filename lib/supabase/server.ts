@@ -7,7 +7,9 @@ type CookieToSet = { name: string; value: string; options: CookieOptions };
 
 // Trailing slashes in the project URL produce a malformed REST path (PGRST125),
 // so normalize them away.
-const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").replace(/\/+$/, "");
+const SUPABASE_URL = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")
+  .replace(/\/+$/, "")
+  .replace(/\/rest\/v1$/, "");
 
 // Server component / route handler client. Honors the signed-in user + RLS.
 export async function createClient() {
