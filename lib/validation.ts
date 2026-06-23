@@ -36,8 +36,9 @@ export const signupSchema = z.object({
 export const foodBankSchema = z.object({
   name: z.string().min(1),
   address: z.string().min(5),
-  latitude: z.coerce.number(),
-  longitude: z.coerce.number(),
+  // Optional — when omitted, the API geocodes the address to fill these in.
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
   phone: z.string().optional().or(z.literal("")),
   website: z.string().url().optional().or(z.literal("")),
   hours: z.string().optional().or(z.literal("")),
