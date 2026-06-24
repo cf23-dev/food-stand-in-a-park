@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { sendEmail, donorFeedbackRequestEmail } from "@/lib/email";
+import type { PickupRequest } from "@/lib/types";
 
 // POST /api/pickups/[id]/complete — volunteer marks their claimed pickup done.
 // Body: { delivery_photo_url?: string, quantity_lbs?: number }
@@ -46,6 +48,26 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const update: Record<string, unknown> = { status: "completed" };
   if (typeof body.quantity_lbs === "number") update.quantity_lbs = body.quantity_lbs;
   await admin.from("pickup_requests").update(update).eq("id", pickupId);
+
+  // Ask the donor for feedback (best-effort).
+  const { data: pickup } = await admin
+    .from("pickup_requests")
+    .select("donor_name, donor_email, food_type")
+    .eq("id", pickupId)
+    .single();
+  const p = pickup as Pick<PickupRequest, "donor_name" | "donor_email" | "food_type"> | null;
+  if (p?.donor_email) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+    await sendEmail({
+      to: p.donor_email,
+      subject: "How did your food donation go? 🥕",
+      html: donorFeedbackRequestEmail({
+        donorName: p.donor_name,
+        foodType: p.food_type,
+        url: `${siteUrl}/feedback/${pickupId}`,
+      }),
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }

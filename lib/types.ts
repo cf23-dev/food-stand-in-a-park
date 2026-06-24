@@ -56,6 +56,16 @@ export interface VolunteerClaim {
   delivery_photo_url: string | null;
   claimed_at: string;
   completed_at: string | null;
+  reminder_sent_at: string | null;
+}
+
+export interface Feedback {
+  id: string;
+  pickup_id: string | null;
+  donor_email: string | null;
+  rating: number;
+  comment: string | null;
+  created_at: string;
 }
 
 export interface Notification {

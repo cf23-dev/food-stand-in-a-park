@@ -78,6 +78,7 @@ create table if not exists public.volunteer_claims (
   delivery_photo_url text,
   claimed_at     timestamptz not null default now(),
   completed_at   timestamptz,
+  reminder_sent_at timestamptz,
   unique (pickup_id)           -- a pickup can only be actively claimed once
 );
 
@@ -96,6 +97,18 @@ create table if not exists public.notifications (
 );
 
 create index if not exists notifications_volunteer_idx on public.notifications(volunteer_id, read);
+
+-- ─── feedback ───────────────────────────────────────────────────────────────
+-- Donor feedback after a completed pickup. Private to admins.
+create table if not exists public.feedback (
+  id          uuid primary key default gen_random_uuid(),
+  pickup_id   uuid references public.pickup_requests(id) on delete set null,
+  donor_email text,
+  rating      int check (rating between 1 and 5),
+  comment     text,
+  created_at  timestamptz not null default now(),
+  unique (pickup_id)
+);
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- Helper functions
@@ -178,6 +191,7 @@ alter table public.food_banks       enable row level security;
 alter table public.pickup_requests  enable row level security;
 alter table public.volunteer_claims enable row level security;
 alter table public.notifications    enable row level security;
+alter table public.feedback         enable row level security;
 
 -- profiles ────────────────────────────────────────────────────────────────
 drop policy if exists "profiles self read" on public.profiles;
@@ -245,6 +259,11 @@ create policy "notifications own read" on public.notifications
 drop policy if exists "notifications own update" on public.notifications;
 create policy "notifications own update" on public.notifications
   for update using (auth.uid() = volunteer_id);
+
+-- feedback: admins read; inserts happen server-side via the service role ─────
+drop policy if exists "feedback admin read" on public.feedback;
+create policy "feedback admin read" on public.feedback
+  for select using (public.is_admin());
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- Storage: delivery photos bucket (run once)

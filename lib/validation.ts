@@ -33,6 +33,12 @@ export const signupSchema = z.object({
   address: z.string().max(300).optional().or(z.literal("")),
 });
 
+export const feedbackSchema = z.object({
+  pickup_id: z.string().uuid(),
+  rating: z.coerce.number().int().min(1).max(5),
+  comment: z.string().max(2000).optional().or(z.literal("")),
+});
+
 export const foodBankSchema = z.object({
   name: z.string().min(1),
   address: z.string().min(5),

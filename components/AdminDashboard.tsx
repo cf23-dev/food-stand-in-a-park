@@ -4,17 +4,20 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, EmptyState, StatusBadge } from "./ui";
 import { FOOD_TYPES } from "@/lib/types";
-import type { FoodBank, PickupRequest, PickupStatus, Profile } from "@/lib/types";
+import type { Feedback, FoodBank, PickupRequest, PickupStatus, Profile } from "@/lib/types";
 
-type Tab = "overview" | "pickups" | "volunteers" | "foodbanks";
+export type FeedbackRow = Feedback & { pickup: { food_type: string } | null };
+
+type Tab = "overview" | "pickups" | "volunteers" | "foodbanks" | "feedback";
 
 interface Props {
   pickups: PickupRequest[];
   volunteers: Profile[];
   foodBanks: FoodBank[];
+  feedback: FeedbackRow[];
 }
 
-export function AdminDashboard({ pickups, volunteers, foodBanks }: Props) {
+export function AdminDashboard({ pickups, volunteers, foodBanks, feedback }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +57,7 @@ export function AdminDashboard({ pickups, volunteers, foodBanks }: Props) {
           ["pickups", `Pickups (${pickups.length})`],
           ["volunteers", `Volunteers (${volunteers.length})`],
           ["foodbanks", `Food banks (${foodBanks.length})`],
+          ["feedback", `Feedback (${feedback.length})`],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -169,6 +173,33 @@ export function AdminDashboard({ pickups, volunteers, foodBanks }: Props) {
         )}
 
         {tab === "foodbanks" && <FoodBankManager foodBanks={foodBanks} onCreate={(b) => call("/api/admin/food-banks", "POST", b)} />}
+
+        {tab === "feedback" && (
+          <div className="space-y-3">
+            {feedback.length === 0 ? (
+              <EmptyState title="No feedback yet" body="Donor feedback will appear here after pickups are completed." />
+            ) : (
+              feedback.map((f) => (
+                <div key={f.id} className="card">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-accent-500" aria-label={`${f.rating} out of 5`}>
+                      {"★".repeat(f.rating)}
+                      <span className="text-gray-300">{"★".repeat(5 - f.rating)}</span>
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {new Date(f.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                  {f.comment && <p className="mt-2 text-sm text-gray-700">“{f.comment}”</p>}
+                  <p className="mt-2 text-xs text-gray-500">
+                    {f.pickup?.food_type ?? "—"}
+                    {f.donor_email ? ` · ${f.donor_email}` : ""}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

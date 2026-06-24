@@ -85,3 +85,68 @@ export function volunteerNotifyEmail(args: {
     padding:10px 18px;border-radius:8px;text-decoration:none">View &amp; claim pickup</a></p>
   `);
 }
+
+const button = (href: string, label: string) =>
+  `<a href="${href}" style="display:inline-block;background:#15803d;color:#fff;
+   padding:10px 18px;border-radius:8px;text-decoration:none">${label}</a>`;
+
+// Reminder ~2 hours before the pickup window. Wording adapts to recipient.
+export function pickupReminderEmail(args: {
+  role: "volunteer" | "donor";
+  name?: string;
+  foodType: string;
+  address: string;
+  windowText?: string;
+}) {
+  const intro =
+    args.role === "volunteer"
+      ? `This is a reminder that you have a pickup coming up in about 2 hours.`
+      : `This is a reminder that a volunteer is scheduled to pick up your donation in about 2 hours.`;
+  const action =
+    args.role === "volunteer"
+      ? `<p>Please head out in time, and thank you for volunteering! 💚</p>`
+      : `<p>Please have your donation ready for pickup. Thank you for giving! 💚</p>`;
+  return wrap(`
+    <p>Hi${args.name ? ` ${args.name}` : ""},</p>
+    <p>${intro}</p>
+    <ul>
+      <li><strong>Food type:</strong> ${args.foodType}</li>
+      <li><strong>Address:</strong> ${args.address}</li>
+      ${args.windowText ? `<li><strong>Pickup window:</strong> ${args.windowText}</li>` : ""}
+    </ul>
+    ${action}
+  `);
+}
+
+// Sent to the donor after a pickup is completed, asking for feedback.
+export function donorFeedbackRequestEmail(args: {
+  donorName: string;
+  foodType: string;
+  url: string;
+}) {
+  return wrap(`
+    <p>Hi ${args.donorName},</p>
+    <p>Your <strong>${args.foodType}</strong> donation was picked up and delivered to a
+    local food bank — thank you for keeping good food out of the trash! 🥕</p>
+    <p>We'd love to hear how it went. It takes 30 seconds and helps us improve:</p>
+    <p>${button(args.url, "Leave quick feedback")}</p>
+  `);
+}
+
+// Internal notification to the nonprofit when feedback comes in.
+export function adminFeedbackEmail(args: {
+  rating: number;
+  comment: string;
+  donorEmail: string;
+  foodType: string;
+}) {
+  return wrap(`
+    <p><strong>New donor feedback received.</strong></p>
+    <ul>
+      <li><strong>Rating:</strong> ${"★".repeat(args.rating)}${"☆".repeat(5 - args.rating)} (${args.rating}/5)</li>
+      <li><strong>Food type:</strong> ${args.foodType}</li>
+      <li><strong>Donor:</strong> ${args.donorEmail}</li>
+    </ul>
+    ${args.comment ? `<p><strong>Comment:</strong><br>${args.comment}</p>` : "<p><em>No comment left.</em></p>"}
+  `);
+}

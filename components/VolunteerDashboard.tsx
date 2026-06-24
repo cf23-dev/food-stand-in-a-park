@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PickupMap } from "./PickupMap";
@@ -69,6 +69,17 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
     const data = await res.json();
     setBusy(null);
     if (!res.ok) return setError(data.error ?? "Could not complete pickup.");
+    router.refresh();
+  }
+
+  async function cancelClaim(pickupId: string) {
+    if (!confirm("Release this pickup? It will reopen for other volunteers to claim.")) return;
+    setBusy(pickupId);
+    setError(null);
+    const res = await fetch(`/api/pickups/${pickupId}/cancel`, { method: "POST" });
+    const data = await res.json();
+    setBusy(null);
+    if (!res.ok) return setError(data.error ?? "Could not release pickup.");
     router.refresh();
   }
 
@@ -191,7 +202,7 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
               <EmptyState title="No active pickups" body="Claim one from the Available tab to get started." />
             ) : (
               active.map((c) => (
-                <ActiveClaimCard key={c.id} claim={c} busy={busy === c.pickup_id} onComplete={complete} />
+                <ActiveClaimCard key={c.id} claim={c} busy={busy === c.pickup_id} onComplete={complete} onCancel={cancelClaim} />
               ))
             )}
           </div>
@@ -241,19 +252,32 @@ function Stat({ label, value, icon }: { label: string; value: number; icon: stri
   );
 }
 
+const CANCEL_CUTOFF_MS = 24 * 60 * 60 * 1000; // 24h before pickup
+
 function ActiveClaimCard({
   claim,
   busy,
   onComplete,
+  onCancel,
 }: {
   claim: ClaimWithPickup;
   busy: boolean;
   onComplete: (pickupId: string, photoUrl?: string, lbs?: number) => void;
+  onCancel: (pickupId: string) => void;
 }) {
   const [lbs, setLbs] = useState<string>(claim.pickup?.quantity_lbs?.toString() ?? "");
   const [uploading, setUploading] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | undefined>(claim.delivery_photo_url ?? undefined);
   const p = claim.pickup;
+
+  // Compute "now" after mount so the time-based UI doesn't cause a hydration
+  // mismatch (server time vs client time).
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => setNow(Date.now()), []);
+  const pickupTime = p?.earliest_pickup ? new Date(p.earliest_pickup).getTime() : null;
+  // Cancellation allowed only when there's no set time, or it's >24h away.
+  const canCancel = now !== null && (pickupTime === null || pickupTime - now > CANCEL_CUTOFF_MS);
+  const cancelClosed = now !== null && pickupTime !== null && pickupTime - now <= CANCEL_CUTOFF_MS;
 
   async function uploadPhoto(file: File) {
     setUploading(true);
@@ -328,6 +352,30 @@ function ActiveClaimCard({
       >
         {busy ? <Spinner label="Completing" /> : "Mark as completed"}
       </button>
+
+      {/* Release / cancel — only allowed up to 24h before the pickup time. */}
+      <div className="mt-3 border-t border-gray-100 pt-3">
+        {canCancel && (
+          <>
+            <button
+              className="w-full text-sm font-medium text-red-600 hover:underline disabled:opacity-60"
+              disabled={busy}
+              onClick={() => onCancel(claim.pickup_id)}
+            >
+              Can't make it? Release this pickup
+            </button>
+            <p className="mt-1 text-center text-xs text-gray-400">
+              You can release a pickup up to 24 hours before the pickup time.
+            </p>
+          </>
+        )}
+        {cancelClosed && (
+          <p className="text-center text-xs text-gray-400">
+            It's within 24 hours of the pickup time, so this can no longer be released.
+            Please contact us if you have an emergency.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
