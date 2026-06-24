@@ -4,7 +4,6 @@ import {
   Blob,
   HeroArt,
   MissionArt,
-  QuoteMark,
   IconClipboard,
   IconRoute,
   IconBasket,
@@ -89,13 +88,6 @@ const audiences = [
     href: "/food-banks",
     cta: "See the directory",
   },
-];
-
-// Placeholder testimonials — edit these with real quotes when you have them.
-const testimonials = [
-  { quote: "I used to throw out trays of perfectly good bread. Now a volunteer picks it up in minutes.", name: "Sarah, café owner" },
-  { quote: "It's the easiest way I've found to help my neighborhood. I claim a pickup on my way home.", name: "David, volunteer" },
-  { quote: "More fresh produce reaches our shelves every week thanks to these pickups.", name: "Rainier Valley Food Bank" },
 ];
 
 export default async function HomePage() {
@@ -205,22 +197,6 @@ export default async function HomePage() {
               pickup keeps good food out of the landfill and gets it onto someone's plate.
             </p>
             <Link href="/donate" className="btn-primary mt-6 inline-flex">Start a donation</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Testimonials ─────────────────────────────────────────── */}
-      <section className="bg-brand-50/60">
-        <div className="mx-auto max-w-6xl px-4 py-20">
-          <SectionHeading eyebrow="Stories" title="From our community" />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {testimonials.map((t) => (
-              <figure key={t.name} className="card">
-                <QuoteMark className="h-8 w-8 text-brand-200" />
-                <blockquote className="mt-3 text-gray-700">“{t.quote}”</blockquote>
-                <figcaption className="mt-4 text-sm font-semibold text-gray-900">{t.name}</figcaption>
-              </figure>
-            ))}
           </div>
         </div>
       </section>

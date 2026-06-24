@@ -1,0 +1,24 @@
+name: Pickup reminders
+
+# Runs every 15 minutes and pings the reminder endpoint, which emails volunteers
+# + donors about pickups starting within ~2 hours.
+# Setup (one time):
+#   1. In Vercel, set an env var CRON_SECRET to a long random string, and redeploy.
+#   2. In GitHub: repo Settings → Secrets and variables → Actions → New repository
+#      secret → name CRON_SECRET, same value as in Vercel.
+# (GitHub may delay scheduled runs by a few minutes under load — that's fine here.)
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {} # lets you trigger it manually from the Actions tab
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping reminder endpoint
+        run: |
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://donate.foodstandinapark.org/api/cron/reminders
