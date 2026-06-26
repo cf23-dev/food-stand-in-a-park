@@ -22,3 +22,18 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (error) return NextResponse.json({ error: "Update failed." }, { status: 500 });
   return NextResponse.json({ ok: true });
 }
+
+// DELETE — admin permanently removes a pickup. Related claims/notifications
+// cascade automatically (and feedback's pickup_id is set null) per the schema.
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    await requireAdmin();
+  } catch (res) {
+    return res as Response;
+  }
+  const { id } = await params;
+  const admin = createAdminClient();
+  const { error } = await admin.from("pickup_requests").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: "Delete failed." }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

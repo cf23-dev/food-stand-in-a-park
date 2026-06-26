@@ -108,6 +108,7 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback }: Pro
                   <th className="py-2 pr-3">Address</th>
                   <th className="py-2 pr-3">Created</th>
                   <th className="py-2 pr-3">Status</th>
+                  <th className="py-2 pr-3"></th>
                 </tr>
               </thead>
               <tbody>
@@ -128,6 +129,18 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback }: Pro
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                       </select>
+                    </td>
+                    <td className="py-2 pr-3">
+                      <button
+                        className="text-xs font-medium text-red-600 hover:underline"
+                        onClick={() => {
+                          if (confirm(`Delete this pickup from ${p.donor_name}? This can't be undone.`)) {
+                            call(`/api/admin/pickups/${p.id}`, "DELETE");
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
