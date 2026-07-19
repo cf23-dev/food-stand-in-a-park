@@ -96,7 +96,6 @@ export default function SignupPage() {
           onSuccess={(token) => setCaptchaToken(token)}
         />
 
-        <button type="submit" className="btn-primary w-full" disabled={loading}></button>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           {loading ? <Spinner label="Creating account" /> : "Create account"}
         </button>
