@@ -5,15 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Alert, Spinner } from "@/components/ui";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 export default function SignupPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    if (!captchaToken) {
+      setError("Please complete the verification.");
+      return;
+    }
+
     setError(null);
     setNotice(null);
     setLoading(true);
@@ -43,7 +51,7 @@ export default function SignupPage() {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, address }),
-      }).catch(() => {});
+      }).catch(() => { });
     }
 
     if (data.session) {
@@ -83,6 +91,12 @@ export default function SignupPage() {
           <label htmlFor="address" className="label">Home area / ZIP (optional)</label>
           <input id="address" name="address" className="input" placeholder="So we can notify you about nearby pickups" autoComplete="postal-code" />
         </div>
+        <Turnstile
+          siteKey="0x4AAAAAAD4_I9ijjPYpmgo5"
+          onSuccess={(token) => setCaptchaToken(token)}
+        />
+
+        <button type="submit" className="btn-primary w-full" disabled={loading}></button>
         <button type="submit" className="btn-primary w-full" disabled={loading}>
           {loading ? <Spinner label="Creating account" /> : "Create account"}
         </button>

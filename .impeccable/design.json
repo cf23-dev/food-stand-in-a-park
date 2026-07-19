@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-02T00:00:00.000Z",
+  "title": "Design System: Food Stand in a Park",
+  "extensions": {
+    "colorMeta": {
+      "brand-primary": {
+        "role": "primary",
+        "displayName": "Trail Green",
+        "canonical": "#15803d",
+        "tonalRamp": ["#14532d", "#166534", "#15803d", "#16a34a", "#22c55e", "#4ade80", "#86efac", "#dcfce7"]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Harvest Amber",
+        "canonical": "#f59e0b",
+        "tonalRamp": ["#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fbbf24", "#fcd34d", "#fef3c7"]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#111827",
+        "tonalRamp": ["#111827", "#1f2937", "#374151", "#4b5563", "#6b7280", "#9ca3af", "#d1d5db", "#f3f4f6"]
+      },
+      "body": {
+        "role": "neutral",
+        "displayName": "Body Slate",
+        "canonical": "#4b5563",
+        "tonalRamp": ["#111827", "#1f2937", "#374151", "#4b5563", "#6b7280", "#9ca3af", "#d1d5db", "#f3f4f6"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface White",
+        "canonical": "#ffffff",
+        "tonalRamp": ["#e5e7eb", "#eef0f2", "#f3f4f6", "#f9fafb", "#ffffff", "#ffffff", "#ffffff", "#ffffff"]
+      },
+      "status-open-bg": {
+        "role": "tertiary",
+        "displayName": "Open Blue",
+        "canonical": "#dbeafe",
+        "tonalRamp": ["#1e3a8a", "#1e40af", "#1d4ed8", "#2563eb", "#3b82f6", "#93c5fd", "#bfdbfe", "#dbeafe"]
+      },
+      "status-claimed-bg": {
+        "role": "tertiary",
+        "displayName": "Claimed Amber",
+        "canonical": "#fef3c7",
+        "tonalRamp": ["#78350f", "#92400e", "#b45309", "#d97706", "#f59e0b", "#fbbf24", "#fde68a", "#fef3c7"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Landing hero H1 only; ceiling ~3rem." },
+      "headline": { "displayName": "Headline", "purpose": "Section H2s and app page titles." },
+      "title": { "displayName": "Title", "purpose": "Card titles and dashboard section headers." },
+      "body": { "displayName": "Body", "purpose": "Running copy in Body Slate; cap 65-75ch." },
+      "label": { "displayName": "Label", "purpose": "Form labels, button text, badges, table headers." }
+    },
+    "shadows": [
+      { "name": "resting", "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)", "purpose": "Cards, inputs, standing pills. Lifts a true surface off the white canvas; the only decorative depth allowed." },
+      { "name": "focus-ring", "value": "0 0 0 2px #16a34a", "purpose": "Keyboard focus indicator (as outline with 2px offset). Always visible on interactive elements." }
+    ],
+    "motion": [
+      { "name": "transition-standard", "value": "150ms ease-out", "purpose": "Default button/input state transitions. Users are in a task; keep it quick." },
+      { "name": "rise-in", "value": "600ms ease-out (translateY 12px -> 0, opacity 0 -> 1)", "purpose": "Landing-page section entrance only. Disabled under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "container", "value": "72rem" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one confident 'go' on any screen. Solid Trail Green fill.",
+      "html": "<button class=\"ds-btn-primary\">Donate food</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: #15803d; color: #fff; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 0.875rem; font-weight: 600; border: none; border-radius: 0.5rem; padding: 0.625rem 1rem; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-primary:hover { background: #166534; } .ds-btn-primary:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "The lower-priority choice beside a primary action.",
+      "html": "<button class=\"ds-btn-secondary\">Become a volunteer</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: #fff; color: #1f2937; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 0.875rem; font-weight: 600; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.625rem 1rem; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-secondary:hover { background: #f9fafb; } .ds-btn-secondary:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive actions only (remove volunteer, cancel pickup).",
+      "html": "<button class=\"ds-btn-danger\">Remove volunteer</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: #dc2626; color: #fff; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 0.875rem; font-weight: 600; border: none; border-radius: 0.5rem; padding: 0.625rem 1rem; cursor: pointer; transition: background 150ms ease-out; } .ds-btn-danger:hover { background: #b91c1c; } .ds-btn-danger:focus-visible { outline: 2px solid #16a34a; outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard field; green focus border plus soft wash ring.",
+      "html": "<label class=\"ds-label\">Pickup address<input class=\"ds-input\" placeholder=\"123 Main St\" /></label>",
+      "css": ".ds-label { display: block; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; } .ds-input { width: 100%; background: #fff; color: #111827; font-size: 0.875rem; border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.625rem 0.75rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); } .ds-input::placeholder { color: #6b7280; } .ds-input:focus { outline: none; border-color: #16a34a; box-shadow: 0 0 0 2px #dcfce7; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat surface with hairline border and resting shadow. Never nested.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Volunteers</h3><p class=\"ds-card-body\">Drivers who claim nearby pickups and deliver them to food banks.</p></div>",
+      "css": ".ds-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.25rem; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; } .ds-card-title { font-size: 1.125rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem; } .ds-card-body { font-size: 0.875rem; line-height: 1.6; color: #4b5563; margin: 0; }"
+    },
+    {
+      "name": "Status Badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Pickup state as a pill; color reinforces the always-present text label.",
+      "html": "<span class=\"ds-badge ds-badge-open\">Open</span> <span class=\"ds-badge ds-badge-claimed\">Claimed</span> <span class=\"ds-badge ds-badge-completed\">Completed</span> <span class=\"ds-badge ds-badge-cancelled\">Cancelled</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 0.75rem; font-weight: 500; border-radius: 9999px; padding: 0.125rem 0.625rem; } .ds-badge-open { background: #dbeafe; color: #1e40af; } .ds-badge-claimed { background: #fef3c7; color: #92400e; } .ds-badge-completed { background: #dcfce7; color: #166534; } .ds-badge-cancelled { background: #e5e7eb; color: #374151; }"
+    },
+    {
+      "name": "Alert",
+      "kind": "custom",
+      "refersTo": "alert",
+      "description": "Bordered tint block for error / success / info. Full borders, never a side-stripe.",
+      "html": "<div class=\"ds-alert ds-alert-error\" role=\"alert\">Something went wrong submitting your pickup. Please try again.</div>",
+      "css": ".ds-alert { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 0.875rem; border: 1px solid; border-radius: 0.5rem; padding: 0.75rem 1rem; } .ds-alert-error { background: #fef2f2; border-color: #fecaca; color: #991b1b; } .ds-alert-success { background: #f0fdf4; border-color: #bbf7d0; color: #166534; } .ds-alert-info { background: #eff6ff; border-color: #bfdbfe; color: #1e40af; }"
+    },
+    {
+      "name": "Empty State",
+      "kind": "custom",
+      "refersTo": "empty-state",
+      "description": "Dashed container that teaches the next action, not a dead 'nothing here.'",
+      "html": "<div class=\"ds-empty\"><p class=\"ds-empty-title\">No open pickups nearby</p><p class=\"ds-empty-body\">Widen your notification radius to see more.</p></div>",
+      "css": ".ds-empty { border: 1px dashed #d1d5db; border-radius: 0.75rem; padding: 2.5rem; text-align: center; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; } .ds-empty-title { font-weight: 500; color: #111827; margin: 0; } .ds-empty-body { font-size: 0.875rem; color: #4b5563; margin: 0.25rem 0 0; }"
+    },
+    {
+      "name": "Spinner",
+      "kind": "custom",
+      "refersTo": "spinner",
+      "description": "Inline loading indicator with polite live-region label.",
+      "html": "<span class=\"ds-spinner\" role=\"status\" aria-live=\"polite\"><svg class=\"ds-spinner-svg\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><circle class=\"ds-spinner-track\" cx=\"12\" cy=\"12\" r=\"10\" stroke=\"currentColor\" stroke-width=\"4\"></circle><path class=\"ds-spinner-head\" fill=\"currentColor\" d=\"M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z\"></path></svg>Loading…</span>",
+      "css": ".ds-spinner { display: inline-flex; align-items: center; gap: 0.5rem; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; font-size: 0.875rem; color: #4b5563; } .ds-spinner-svg { height: 1rem; width: 1rem; color: #16a34a; animation: ds-spin 1s linear infinite; } .ds-spinner-track { opacity: 0.25; } .ds-spinner-head { opacity: 0.75; } @keyframes ds-spin { to { transform: rotate(360deg); } } @media (prefers-reduced-motion: reduce) { .ds-spinner-svg { animation-duration: 2s; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Reliable Handoff",
+    "overview": "Everything points at one feeling: a donation, a shift, a delivery handed off cleanly, nothing dropped. The interface earns trust by making state obvious and follow-through certain. The register is product-first: design serves the task on the app surfaces and is the pitch on the landing page. Warmth is carried by plain language, generous spacing, and honest impact numbers, never by ornament. A grounded community green with a single amber accent; one dependable sans doing all the work; grounded, reassuring components with generous tap targets.",
+    "keyCharacteristics": [
+      "Certainty of state above all — every pickup's status is unmistakable",
+      "One grounded green + one amber accent; the accent is rare on purpose",
+      "A single system sans across headings, body, labels, and data",
+      "Flat by default; depth is a light shadow on genuine surfaces, never decoration",
+      "Grounded, tactile components with generous tap targets",
+      "Mobile-first and resilient on older, low-bandwidth devices"
+    ],
+    "rules": [
+      { "name": "The Rare Amber Rule", "body": "Amber is the 'in-progress' signal. It appears on claimed status and the occasional warm highlight, never as a general accent, never as text on white. Its scarcity is what makes 'claimed' read at a glance.", "section": "colors" },
+      { "name": "The Green-Means-Go Rule", "body": "Trail Green is reserved for primary action and completed state. Don't spend it on decoration; a screen where everything is green has no primary action.", "section": "colors" },
+      { "name": "The One-Family Rule", "body": "Never introduce a second typeface for personality. Hierarchy is weight (500 -> 600 -> 700 -> 800) and size, full stop.", "section": "typography" },
+      { "name": "The Balanced Heading Rule", "body": "H1-H3 use text-wrap: balance; long prose uses text-wrap: pretty. Headings must be tested at every breakpoint, no word may overflow on mobile.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat at rest with a hairline border. The only depth is the resting shadow on true surfaces and the focus ring on interaction.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do lead every screen with one obvious primary action in Trail Green (#15803d).",
+      "Do keep body text at Body Slate (#4b5563) or darker on white; supporting text no lighter than Muted Slate (#6b7280).",
+      "Do pair every status color with a text label, never signal state by color alone.",
+      "Do keep the canvas genuinely white; carry warmth through copy, spacing, and the green, not a tinted paper background.",
+      "Do show a visible 2px green focus ring on every interactive element, and honor prefers-reduced-motion on every animation.",
+      "Do cap prose at 65-75ch and use text-wrap: balance on H1-H3."
+    ],
+    "donts": [
+      "Don't use gradient headline text (background-clip: text on a gradient); the landing's current .text-gradient is a slop tell scheduled for rework.",
+      "Don't stack a tiny uppercase tracked eyebrow above every section; vary the cadence, one deliberate kicker at most.",
+      "Don't ship identical icon + heading + text card grids repeated endlessly.",
+      "Don't use glassmorphism, decorative blur, or heavy drop shadows; flat by default.",
+      "Don't use border-left/border-right greater than 1px as a colored accent stripe.",
+      "Don't drift toward the generic charity template or corporate SaaS; both are named anti-references.",
+      "Don't use Harvest Amber (#f59e0b) or Sprout (#22c55e) as text on white; they fail contrast.",
+      "Don't introduce a second typeface; one system sans, hierarchy by weight and size."
+    ]
+  }
+}

@@ -62,17 +62,10 @@ body {
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
   }
-  /* Small uppercase section label. */
+  /* Single deliberate kicker (used once, on the donate form header). */
   .eyebrow {
     @apply inline-flex items-center gap-2 rounded-full bg-brand-100 px-3 py-1
            text-xs font-semibold uppercase tracking-wide text-brand-800;
-  }
-  /* Green→amber gradient text for headline accents. */
-  .text-gradient {
-    background-image: linear-gradient(90deg, var(--color-brand-600), var(--color-accent-500));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
   }
 }
 
