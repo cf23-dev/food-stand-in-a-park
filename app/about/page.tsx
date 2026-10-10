@@ -19,7 +19,7 @@ export default function AboutPage() {
             Food Stand in a Park is a student-led nonprofit organization dedicated to reducing hunger and food waste by empowering young people to organize community food collection stands. Through local donations and partnerships with soup kitchens and food pantries, we make it easy for communities to share unused food with people who need it most. Our mission is to inspire youth leadership, strengthen communities, and ensure that surplus food reaches hungry individuals instead of going to waste.
           </p>
         </div>
-        <MissionArt className="mx-auto w-full max-w-sm" />
+        <MissionArt className="mx-auto w-full max-w-64" />
       </section>
       <section className="mt-12 max-w-3xl border-t border-gray-200 pt-10" aria-labelledby="story-heading">
         <h2 id="story-heading" className="text-2xl font-bold">Our Story</h2>

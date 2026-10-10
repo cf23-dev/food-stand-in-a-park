@@ -1,15 +1,18 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
-import {
-  HeroArt,
-  MissionArt,
-  IconClipboard,
-  IconRoute,
-  IconBasket,
-  IconBox,
-  IconHandHeart,
-  IconBuilding,
-} from "@/components/Illustrations";
+
+export const metadata: Metadata = {
+  title: "Food Stand in a Park — Ending hunger, one food stand at a time",
+  description: "A student-led nonprofit reducing hunger and food waste through community food stands, youth leadership, and local partnerships. Join our mission.",
+  openGraph: {
+    title: "Food Stand in a Park — Ending hunger, one food stand at a time",
+    description: "Student-led. Community-powered. Helping surplus food reach people who need it while inspiring the next generation of community leaders.",
+    images: [{ url: "/community/park-food-drive.jpg", width: 2320, height: 1740, alt: "A Food Stand in a Park community food collection" }],
+    type: "website",
+  },
+};
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +34,9 @@ async function getStats(): Promise<HomeStats> {
       supabase.from("pickup_requests").select("quantity_lbs", { count: "exact" }).eq("status", "completed"),
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "volunteer").eq("approved", true),
     ]);
+    if (banksRes.error || completedRes.error || volRes.error) {
+      throw new Error("Impact data is unavailable.");
+    }
     const pounds = (completedRes.data ?? []).reduce(
       (sum: number, r: { quantity_lbs: number | null }) => sum + (r.quantity_lbs ?? 0),
       0
@@ -47,201 +53,159 @@ async function getStats(): Promise<HomeStats> {
   }
 }
 
-const steps = [
+const opportunities = [
   {
-    title: "Submit a pickup",
-    body: "Have extra food? Fill out a 2-minute form with your address, what you're donating, and a pickup window.",
-    Icon: IconClipboard,
+    number: "01",
+    title: "Start a food stand",
+    body: "Bring your neighbors together to collect food. We'll help you organize a stand in your community and grow your confidence as a leader.",
+    links: [{ href: "/volunteer/dashboard?tab=food-stand", label: "Start a stand" }],
   },
   {
-    title: "A volunteer claims it",
-    body: "Nearby volunteers are notified and claim your pickup. You'll get an email the moment one accepts.",
-    Icon: IconRoute,
+    number: "02",
+    title: "Volunteer your time",
+    body: "Turn a little of your time into something meaningful. Help collect food and deliver it to local food banks and pantries.",
+    links: [{ href: "/volunteer/dashboard", label: "Explore volunteering" }],
   },
   {
-    title: "It reaches a food bank",
-    body: "The volunteer delivers your donation to the nearest food bank and logs the impact — no food wasted.",
-    Icon: IconBasket,
-  },
-];
-
-const audiences = [
-  {
-    title: "Donors",
-    body: "Residents, cafés, and offices with surplus food. Free, no account needed — just submit a pickup.",
-    Icon: IconBox,
-    href: "/donate",
-    cta: "Donate food",
-  },
-  {
-    title: "Volunteers",
-    body: "Drivers who claim nearby pickups and deliver them to food banks, tracking their real-world impact.",
-    Icon: IconHandHeart,
-    href: "/volunteer/signup",
-    cta: "Become a volunteer",
-  },
-  {
-    title: "Food banks",
-    body: "Local organizations that receive the donations we route to them — more food for the people they serve.",
-    Icon: IconBuilding,
-    href: "/food-banks",
-    cta: "See the directory",
+    number: "03",
+    title: "Give what you can",
+    body: "Share food you won't use or help fund our community outreach. Every contribution helps connect good food with people who need it.",
+    links: [{ href: "/donate", label: "Donate food" }, { href: "/support-us", label: "Support our work" }],
   },
 ];
 
 export default async function HomePage() {
   const stats = await getStats();
-  // Show the impact band only once it looks meaningful — i.e. once at least
-  // 100 lbs of food has been rescued. Change the threshold (or the metric)
-  // here to tune when it appears.
+  // These figures cover the pickup program, not the nonprofit's full history.
   const showStats = stats.pounds >= 100;
 
   return (
     <>
-      {/* ─── Hero ─────────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-b from-brand-50 to-white">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 sm:py-24 lg:grid-cols-2">
-          <div className="animate-rise">
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-balance text-gray-900 sm:text-5xl">
-              Donating food should be as easy as{" "}
-              <span className="text-brand-700">a text message</span>
+      <section className="mx-auto max-w-6xl px-4 pb-12 pt-10 sm:pb-16 sm:pt-16">
+        <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+          <div className="animate-rise lg:col-span-5">
+            <p className="text-xs font-semibold uppercase tracking-widest text-brand-800">Student-led. Community-powered. Since 2021.</p>
+            <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-balance text-brand-700 sm:text-5xl">
+              Ending hunger,{" "}<span className="whitespace-nowrap">one food stand</span>{" "}at a time
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-pretty text-gray-600">
-              Food Stand in a Park connects neighbors with extra food to volunteers
-              who deliver it to local food banks. No food wasted, more people fed.
+              We bring neighbors together to share food, reduce waste, and help young people become leaders in their communities.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/donate" className="btn-primary px-6 py-3 text-base">Donate food</Link>
-              <Link href="/volunteer/signup" className="btn-secondary px-6 py-3 text-base">Become a volunteer</Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <a href="#get-involved" className="btn-primary px-6 py-3 text-base">Get involved</a>
+              <Link href="/about" className="btn-secondary px-6 py-3 text-base">Our story</Link>
             </div>
-            <p className="mt-6 text-sm text-gray-600">
-              100% volunteer-run · Free for donors · About two minutes
-            </p>
           </div>
-          <div className="animate-rise" style={{ animationDelay: "120ms" }}>
-            <HeroArt className="mx-auto w-full max-w-md" />
+          <figure className="animate-rise lg:col-span-7" style={{ animationDelay: "100ms" }}>
+            <Image src="/community/park-food-drive.jpg" alt="Food collection tables at a park, with donated groceries and a handmade Food Stand in a Park sign" width={2320} height={1740} priority sizes="(min-width: 1200px) 640px, (min-width: 1024px) 55vw, 100vw" className="aspect-[4/3] w-full rounded-xl object-cover" />
+            <figcaption className="mt-3 text-sm text-gray-600">A simple stand. A community coming together.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section className="bg-brand-50" aria-labelledby="mission-heading">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:py-16 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-5">
+            <h2 id="mission-heading" className="text-3xl font-bold tracking-tight text-balance">Less hunger.<br />Less waste.<br /><span className="text-brand-800">More young leaders.</span></h2>
+          </div>
+          <div className="lg:col-span-7">
+            <p className="text-lg leading-relaxed text-pretty text-gray-700">
+              Food Stand in a Park is a student-led nonprofit organization dedicated to reducing hunger and food waste by empowering young people to organize community food collection stands.
+            </p>
+            <p className="mt-4 leading-relaxed text-pretty text-gray-600">
+              Our mission is to inspire youth leadership, strengthen communities, and ensure that surplus food reaches hungry individuals instead of going to waste.
+            </p>
+            <Link href="/about" className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-brand-800 hover:underline">Learn about our mission <span aria-hidden="true">→</span></Link>
           </div>
         </div>
       </section>
 
-      {/* ─── Impact stats (hidden until there's real activity) ──────── */}
-      {showStats && (
-        <section className="border-y border-gray-100 bg-white">
-          <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-4 py-12 sm:grid-cols-4">
-            <Stat value={stats.pounds.toLocaleString()} label="Pounds of food rescued" />
-            <Stat value={stats.pickups.toLocaleString()} label="Pickups completed" />
-            <Stat value={stats.volunteers.toLocaleString()} label="Active volunteers" />
-            <Stat value={stats.foodBanks.toLocaleString()} label="Partner food banks" />
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20" aria-labelledby="story-heading">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <figure>
+            <Image src="/community/food-stand.jpg" alt="A handmade yellow Food Stand in a Park banner in front of collection boxes labeled for rice, pasta, beans, and canned food" width={1066} height={800} sizes="(min-width: 1200px) 550px, (min-width: 1024px) 50vw, 100vw" className="aspect-[4/3] w-full rounded-xl object-cover" />
+            <figcaption className="mt-3 text-sm text-gray-600">Neighbors sharing what they have with people who need it.</figcaption>
+          </figure>
+          <div>
+            <h2 id="story-heading" className="text-3xl font-bold tracking-tight text-balance">It started with students who saw a way to help.</h2>
+            <p className="mt-5 leading-relaxed text-pretty text-gray-600">
+              In 2021, our student founders noticed that some families had food to spare while others were going hungry. They created Food Stand in a Park to build a bridge between them.
+            </p>
+            <p className="mt-4 leading-relaxed text-pretty text-gray-600">
+              Today, that same idea guides our work: bring people together, collect food that would otherwise go unused, and get it to those who need it. Along the way, students learn to plan, organize, and lead a project that matters to their community.
+            </p>
+            <Link href="/about" className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-brand-700 hover:underline">Read our story <span aria-hidden="true">→</span></Link>
           </div>
-        </section>
-      )}
-
-      {/* ─── How it works ─────────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 py-20">
-        <SectionHeading
-          title="Three steps from surplus to served"
-          sub="From a neighbor's kitchen to a food bank's shelves, in one simple handoff."
-        />
-        <div className="mt-12 grid gap-8 sm:grid-cols-3">
-          {steps.map((s, i) => (
-            <div key={s.title} className="relative text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
-                <s.Icon className="h-8 w-8" />
-              </div>
-              <div className="mx-auto mt-4 flex items-center justify-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-700 text-xs font-bold text-white">{i + 1}</span>
-                <h3 className="font-semibold text-gray-900">{s.title}</h3>
-              </div>
-              <p className="mt-2 text-pretty text-sm text-gray-600">{s.body}</p>
-            </div>
-          ))}
         </div>
       </section>
 
-      {/* ─── Who it's for ─────────────────────────────────────────── */}
-      <section className="bg-brand-50/60">
-        <div className="mx-auto max-w-6xl px-4 py-20">
-          <SectionHeading
-            title="Everyone has a part to play"
-            sub="Donors, volunteers, and food banks — each doing one thing well."
-          />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {audiences.map((a) => (
-              <div
-                key={a.title}
-                className="card group relative flex flex-col transition-colors hover:border-brand-300"
-              >
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-                  <a.Icon className="h-6 w-6" />
+      <section id="get-involved" className="scroll-mt-44 border-y border-gray-200 lg:scroll-mt-24" aria-labelledby="involved-heading">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
+          <div className="grid gap-5 lg:grid-cols-2 lg:gap-16">
+            <h2 id="involved-heading" className="text-3xl font-bold tracking-tight text-balance">There's a place for you here.</h2>
+            <p className="max-w-xl leading-relaxed text-gray-600">Whether you want to lead a food stand, lend a hand, or give what you can, you can help build a community where good food is shared.</p>
+          </div>
+          <div className="mt-10">
+            {opportunities.map(opportunity => (
+              <article key={opportunity.number} className="grid gap-4 border-t border-gray-200 py-8 sm:grid-cols-12 sm:gap-6">
+                <span className="text-sm font-semibold text-brand-800 sm:col-span-1" aria-hidden="true">{opportunity.number}</span>
+                <h3 className="text-xl font-semibold text-balance sm:col-span-4">{opportunity.title}</h3>
+                <div className="sm:col-span-7">
+                  <p className="max-w-xl leading-relaxed text-gray-600">{opportunity.body}</p>
+                  <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1">
+                    {opportunity.links.map(link => <Link key={link.href} href={link.href} className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand-700 hover:underline">{link.label}<span aria-hidden="true">→</span></Link>)}
+                  </div>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{a.title}</h3>
-                <p className="mt-2 flex-1 text-pretty text-sm text-gray-600">{a.body}</p>
-                <Link
-                  href={a.href}
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-700 after:absolute after:inset-0 group-hover:underline"
-                >
-                  {a.cta}
-                  <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:py-20" aria-labelledby="community-heading">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-5">
+            <h2 id="community-heading" className="text-3xl font-bold tracking-tight text-balance">Local food.<br />Shared with care.</h2>
+          </div>
+          <div className="lg:col-span-7">
+            <p className="leading-relaxed text-pretty text-gray-600">Our food stands and volunteer pickups connect community generosity with the soup kitchens and food pantries that serve our neighbors. Together, we help surplus food reach people instead of going to waste.</p>
+            {stats.foodBankNames.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-gray-900">Food banks in our pickup network</h3>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {stats.foodBankNames.map(name => <li key={name} className="rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700">{name}</li>)}
+                </ul>
               </div>
-            ))}
+            )}
+            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1">
+              <Link href="/food-banks" className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand-700 hover:underline">Explore the food bank directory <span aria-hidden="true">→</span></Link>
+              <a href="/community/partner-letter.jpg" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-700 hover:underline">A note from a food pantry partner <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a>
+            </div>
           </div>
         </div>
+        {showStats && (
+          <div className="mt-12 border-t border-gray-200 pt-8">
+            <h3 className="text-lg font-semibold">Our pickup program's impact</h3>
+            <p className="mt-2 text-sm text-gray-600">Recorded through our volunteer pickup platform.</p>
+            <dl className="mt-6 grid grid-cols-2 gap-6 sm:grid-cols-4">
+              <Stat value={stats.pounds.toLocaleString()} label="Pounds of food rescued" />
+              <Stat value={stats.pickups.toLocaleString()} label="Pickups completed" />
+              <Stat value={stats.volunteers.toLocaleString()} label="Approved volunteers" />
+              <Stat value={stats.foodBanks.toLocaleString()} label="Food banks in the network" />
+            </dl>
+          </div>
+        )}
       </section>
 
-      {/* ─── Mission / story ──────────────────────────────────────── */}
-      <section className="mx-auto max-w-6xl px-4 py-20">
-        <div className="grid items-center gap-12 lg:grid-cols-2">
-          <MissionArt className="order-2 mx-auto w-full max-w-sm lg:order-1" />
-          <div className="order-1 lg:order-2">
-            <h2 className="text-3xl font-bold tracking-tight text-balance text-gray-900">Good food shouldn't go to waste while neighbors go hungry</h2>
-            <p className="mt-5 text-pretty leading-relaxed text-gray-600">
-              Roughly a third of all food in the U.S. is thrown away, even as millions
-              of families struggle to put meals on the table. The gap usually comes down
-              to one thing: getting surplus food from where it is to where it's needed.
-            </p>
-            <p className="mt-4 text-pretty leading-relaxed text-gray-600">
-              We close that gap with a simple network of neighbors and volunteers. Every
-              pickup keeps good food out of the landfill and gets it onto someone's plate.
-            </p>
-            <Link href="/donate" className="btn-primary mt-6 inline-flex">Start a donation</Link>
+      <section className="bg-brand-800">
+        <div className="mx-auto flex max-w-6xl flex-col items-start gap-8 px-4 py-14 sm:py-16 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-xl">
+            <h2 className="text-3xl font-bold tracking-tight text-balance text-white">Help build a stronger, more caring community.</h2>
+            <p className="mt-4 leading-relaxed text-brand-100">One stand, one volunteer, one neighbor at a time. Join us in making good food go further.</p>
           </div>
-        </div>
-      </section>
-
-      {/* ─── Where donations go ───────────────────────────────────── */}
-      {stats.foodBankNames.length > 0 && (
-        <section className="mx-auto max-w-6xl border-t border-gray-100 px-4 py-20">
-          <SectionHeading title="Food banks we deliver to" />
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            {stats.foodBankNames.map((name) => (
-              <span key={name} className="rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm">
-                {name}
-              </span>
-            ))}
-          </div>
-          <div className="mt-8 text-center">
-            <Link href="/food-banks" className="text-sm font-semibold text-brand-700 hover:underline">
-              View the full directory →
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* ─── Final CTA ────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-r from-brand-700 to-brand-800">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-5 px-4 py-20 text-center text-white">
-          <h2 className="text-3xl font-bold tracking-tight text-balance">Ready to keep good food out of the trash?</h2>
-          <p className="max-w-xl text-pretty text-brand-100">
-            It takes about two minutes to submit a pickup — and a volunteer takes it from there.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href="/donate" className="btn bg-white px-6 py-3 text-base text-brand-800 hover:bg-brand-50">
-              Donate food
-            </Link>
-            <Link href="/volunteer/signup" className="btn border border-white/60 px-6 py-3 text-base text-white hover:bg-white/10">
-              Become a volunteer
-            </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/volunteer/dashboard" className="btn bg-white px-6 py-3 text-base text-brand-800 hover:bg-brand-50">Volunteer with us</Link>
+            <Link href="/support-us" className="btn border border-white px-6 py-3 text-base text-white hover:bg-white/10">Support our work</Link>
           </div>
         </div>
       </section>
@@ -251,18 +215,9 @@ export default async function HomePage() {
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="text-center">
-      <div className="text-3xl font-extrabold text-brand-700 sm:text-4xl">{value}</div>
-      <div className="mt-1 text-sm text-gray-600">{label}</div>
-    </div>
-  );
-}
-
-function SectionHeading({ title, sub }: { title: string; sub?: string }) {
-  return (
-    <div className="mx-auto max-w-2xl text-center">
-      <h2 className="text-3xl font-bold tracking-tight text-balance text-gray-900">{title}</h2>
-      {sub && <p className="mt-3 text-pretty text-gray-600">{sub}</p>}
+    <div>
+      <dt className="text-sm text-gray-600">{label}</dt>
+      <dd className="mt-2 text-3xl font-extrabold text-brand-800">{value}</dd>
     </div>
   );
 }
