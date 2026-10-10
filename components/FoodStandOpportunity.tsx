@@ -20,7 +20,8 @@ export function FoodStandOpportunity({ profile }: { profile: Profile | null }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: fields.get("name"), age: Number(fields.get("age")),
-          phone: fields.get("phone"), state_zip: fields.get("state_zip"),
+          phone: fields.get("phone"),
+          state_zip: `${String(fields.get("state") ?? "").trim()}, ${String(fields.get("zip_code") ?? "").trim()}`,
           referral: fields.get("referral"), receive_updates: fields.get("receive_updates") === "on",
         }),
       });
@@ -56,7 +57,10 @@ export function FoodStandOpportunity({ profile }: { profile: Profile | null }) {
               <div><label htmlFor="stand-email" className="label">Account email</label><input id="stand-email" type="email" value={profile?.email ?? ""} readOnly className="input bg-gray-50" /><p className="mt-1 text-xs text-gray-600">We&apos;ll reply to your signed-in account email.</p></div>
               <div><label htmlFor="stand-phone" className="label">Phone *</label><input id="stand-phone" name="phone" type="tel" autoComplete="tel" defaultValue={profile?.phone ?? ""} required minLength={7} maxLength={40} className="input" /></div>
             </div>
-            <div><label htmlFor="stand-location" className="label">State &amp; ZIP code *</label><input id="stand-location" name="state_zip" placeholder="e.g. California, 95757" required minLength={3} maxLength={120} className="input" /></div>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div><label htmlFor="stand-state" className="label">State *</label><input id="stand-state" name="state" autoComplete="address-level1" placeholder="e.g. California" required minLength={2} maxLength={100} className="input" /></div>
+              <div><label htmlFor="stand-zip" className="label">ZIP code *</label><input id="stand-zip" name="zip_code" type="text" autoComplete="postal-code" placeholder="e.g. 95757" required pattern="[0-9]{5}(-[0-9]{4})?" maxLength={10} title="Enter a 5-digit ZIP code or ZIP+4, such as 95757 or 95757-1234." className="input" /></div>
+            </div>
             <div><label htmlFor="stand-referral" className="label">How did you hear about this opportunity?</label><textarea id="stand-referral" name="referral" rows={3} maxLength={2000} className="input" /></div>
             <label className="flex items-start gap-3 text-sm text-gray-700"><input type="checkbox" name="receive_updates" className="mt-1 h-4 w-4 accent-brand-700" /><span>Yes, I&apos;d like to receive updates on volunteer opportunities and upcoming events.</span></label>
             <button type="submit" className="btn-primary">{busy ? <Spinner label="Sending" /> : "Send my interest"}</button>

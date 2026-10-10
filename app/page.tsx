@@ -98,7 +98,6 @@ export default async function HomePage() {
           </div>
           <figure className="animate-rise lg:col-span-7" style={{ animationDelay: "100ms" }}>
             <Image src="/community/park-food-drive.jpg" alt="Food collection tables at a park, with donated groceries and a handmade Food Stand in a Park sign" width={2320} height={1740} priority sizes="(min-width: 1200px) 640px, (min-width: 1024px) 55vw, 100vw" className="aspect-[4/3] w-full rounded-xl object-cover" />
-            <figcaption className="mt-3 text-sm text-gray-600">A simple stand. A community coming together.</figcaption>
           </figure>
         </div>
       </section>
@@ -124,7 +123,6 @@ export default async function HomePage() {
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <figure>
             <Image src="/community/food-stand.jpg" alt="A handmade yellow Food Stand in a Park banner in front of collection boxes labeled for rice, pasta, beans, and canned food" width={1066} height={800} sizes="(min-width: 1200px) 550px, (min-width: 1024px) 50vw, 100vw" className="aspect-[4/3] w-full rounded-xl object-cover" />
-            <figcaption className="mt-3 text-sm text-gray-600">Neighbors sharing what they have with people who need it.</figcaption>
           </figure>
           <div>
             <h2 id="story-heading" className="text-3xl font-bold tracking-tight text-balance">It started with students who saw a way to help.</h2>
@@ -179,7 +177,7 @@ export default async function HomePage() {
             )}
             <div className="mt-4 flex flex-wrap gap-x-6 gap-y-1">
               <Link href="/food-banks" className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand-700 hover:underline">Explore the food bank directory <span aria-hidden="true">→</span></Link>
-              <a href="/community/partner-letter.jpg" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-700 hover:underline">A note from a food pantry partner <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a>
+              <a href="/community/partner-letter.png" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-brand-700 hover:underline">A note from a food pantry partner <span className="sr-only">(opens in a new tab)</span><span aria-hidden="true">↗</span></a>
             </div>
           </div>
         </div>
