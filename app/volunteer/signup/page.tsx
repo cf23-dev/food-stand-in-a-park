@@ -31,12 +31,13 @@ export default function SignupPage() {
     const password = String(fd.get("password"));
     const name = String(fd.get("name"));
     const address = String(fd.get("address"));
+    const newsletterOptIn = fd.get("newsletter_opt_in") === "on";
 
     const supabase = createClient();
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name, role: "volunteer" } },
+      options: { data: { name, role: "volunteer", newsletter_opt_in: newsletterOptIn } },
     });
 
     if (error) {
@@ -91,6 +92,10 @@ export default function SignupPage() {
           <label htmlFor="address" className="label">Home area / ZIP (optional)</label>
           <input id="address" name="address" className="input" placeholder="So we can notify you about nearby pickups" autoComplete="postal-code" />
         </div>
+        <label className="flex items-start gap-3 text-sm text-gray-700">
+          <input type="checkbox" name="newsletter_opt_in" className="mt-1 h-4 w-4 shrink-0 accent-brand-700" />
+          <span>Yes, I agree to receive occasional email newsletters from Food Stand in a Park.</span>
+        </label>
         <Turnstile
           siteKey="0x4AAAAAAD4_I9ijjPYpmgo5"
           onSuccess={(token) => setCaptchaToken(token)}
