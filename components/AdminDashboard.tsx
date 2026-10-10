@@ -4,13 +4,15 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, EmptyState } from "./ui";
 import { AdminHourRequests } from "./AdminHourRequests";
+import { AdminFoodStandRequests } from "./AdminFoodStandRequests";
+import type { FoodStandRequest } from "@/lib/food-stand";
 import type { HourEntry } from "@/lib/hours";
 import { FOOD_TYPES } from "@/lib/types";
 import type { Feedback, FoodBank, PickupRequest, PickupStatus, Profile } from "@/lib/types";
 
 export type FeedbackRow = Feedback & { pickup: { food_type: string } | null };
 
-type Tab = "overview" | "pickups" | "volunteers" | "foodbanks" | "feedback" | "hours";
+type Tab = "overview" | "pickups" | "volunteers" | "foodbanks" | "feedback" | "hours" | "food-stands";
 
 interface Props {
   pickups: PickupRequest[];
@@ -21,9 +23,11 @@ interface Props {
   hoursError?: string;
   adminName: string;
   adminId: string;
+  foodStandRequests: FoodStandRequest[];
+  foodStandError?: string;
 }
 
-export function AdminDashboard({ pickups: receivedPickups, volunteers, foodBanks, feedback, hourEntries, hoursError, adminName, adminId }: Props) {
+export function AdminDashboard({ pickups: receivedPickups, volunteers, foodBanks, feedback, hourEntries, hoursError, adminName, adminId, foodStandRequests, foodStandError }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
   const [error, setError] = useState<string | null>(null);
@@ -129,6 +133,7 @@ export function AdminDashboard({ pickups: receivedPickups, volunteers, foodBanks
           ["foodbanks", `Food banks (${foodBanks.length})`],
           ["feedback", `Feedback (${feedback.length})`],
           ["hours", `Hour requests (${hourEntries.filter(e => e.status === "pending").length})`],
+          ["food-stands", `Food stand requests (${foodStandRequests.filter(r => r.status === "new").length} new)`],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -145,6 +150,7 @@ export function AdminDashboard({ pickups: receivedPickups, volunteers, foodBanks
       </div>
 
       <div className="mt-6">
+        {tab === "food-stands" && <AdminFoodStandRequests requests={foodStandRequests} loadError={foodStandError} />}
         {tab === "hours" && <AdminHourRequests entries={hourEntries} signerName={adminName} adminId={adminId} loadError={hoursError} />}
         {tab === "overview" && (
           <>
@@ -159,6 +165,10 @@ export function AdminDashboard({ pickups: receivedPickups, volunteers, foodBanks
                 <Alert kind="info">{stats.pendingVols} volunteer(s) awaiting approval in the Volunteers tab.</Alert>
               </div>
             )}
+            {foodStandError && <div className="mt-4"><Alert>{foodStandError}</Alert></div>}
+            {foodStandRequests.some(r => r.status === "new") && <div className="mt-4"><Alert kind="info">
+              {foodStandRequests.filter(r => r.status === "new").length} food stand request(s) awaiting follow-up. <button className="underline" onClick={() => setTab("food-stands")}>Review requests</button>
+            </Alert></div>}
             {hourEntries.some(e => e.status === "pending") && <div className="mt-4"><Alert kind="info">
               {hourEntries.filter(e => e.status === "pending").length} hour request(s) awaiting signature. <button className="underline" onClick={() => setTab("hours")}>Review requests</button>
             </Alert></div>}

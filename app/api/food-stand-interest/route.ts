@@ -18,11 +18,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Check your details." }, { status: 400 });
   }
 
-  // Unlike optional pickup notifications, this email IS the submission. Never
-  // report success when delivery is unconfigured or rejected by the provider.
+  const { data: request, error: saveError } = await supabase
+    .from("food_stand_requests")
+    .insert({ ...parsed.data, volunteer_id: user.id, email: user.email })
+    .select("id")
+    .single();
+  if (saveError) {
+    return NextResponse.json({ error: "Your request could not be saved. Please try again or email contact@foodstandinapark.org." }, { status: 500 });
+  }
+
+  // The saved request is the source of truth. Email is an optional alert;
+  // failures must not invite a duplicate submission of an already saved request.
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || apiKey.startsWith("your-")) {
-    return NextResponse.json({ error: "The form is temporarily unavailable. Please email contact@foodstandinapark.org to get started." }, { status: 503 });
+    return NextResponse.json({ ok: true, id: request.id }, { status: 201 });
   }
   try {
     const { error } = await new Resend(apiKey).emails.send({
@@ -33,8 +42,9 @@ export async function POST(req: Request) {
       html: foodStandInterestEmail(parsed.data, user.email),
     });
     if (error) throw new Error("Email provider rejected the submission.");
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, id: request.id }, { status: 201 });
   } catch {
-    return NextResponse.json({ error: "Your interest could not be sent. Please try again or email contact@foodstandinapark.org." }, { status: 502 });
+    console.error("Food stand request saved, but email notification failed.");
+    return NextResponse.json({ ok: true, id: request.id }, { status: 201 });
   }
 }

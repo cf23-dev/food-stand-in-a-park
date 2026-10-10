@@ -11,6 +11,16 @@ export const foodStandInterestSchema = z.object({
 
 export type FoodStandInterest = z.infer<typeof foodStandInterestSchema>;
 
+export const foodStandStatuses = ["new", "contacted", "closed"] as const;
+export const foodStandStatusSchema = z.object({ status: z.enum(foodStandStatuses) });
+export interface FoodStandRequest extends FoodStandInterest {
+  id: string;
+  volunteer_id: string;
+  email: string;
+  status: typeof foodStandStatuses[number];
+  created_at: string;
+}
+
 // User input must remain plain text inside the notification email.
 const escapeHtml = (value: string) => value.replace(/[&<>"']/g, (char) => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",

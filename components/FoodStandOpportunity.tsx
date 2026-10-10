@@ -43,7 +43,7 @@ export function FoodStandOpportunity({ profile }: { profile: Profile | null }) {
       <p className="mt-3 text-sm text-gray-600">Our team will help you plan a food collection stand and connect donations with people who need them.</p>
       {sent ? (
         <div className="mt-6">
-          <Alert kind="success">Your interest has been sent to our team. We&apos;ll contact you at your account email to help you get started.</Alert>
+          <Alert kind="success">Your request has been saved for our team to review. We&apos;ll contact you at your account email to help you get started.</Alert>
         </div>
       ) : (
         <form onSubmit={submit} className="card mt-6 space-y-5">

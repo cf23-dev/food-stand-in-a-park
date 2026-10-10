@@ -43,9 +43,18 @@ Volunteers can open **Start a food stand** in their dashboard and submit their
 name, age, phone, state/ZIP, referral, and optional updates preference. The
 authenticated `/api/food-stand-interest` endpoint sends the details to
 `contact@foodstandinapark.org`, using the signed-in account email as reply-to.
-It uses the existing `RESEND_API_KEY` and `EMAIL_FROM` configuration, requires
-no database migration, and reports delivery failures instead of claiming success.
-The form provides a direct contact email when sending is unavailable.
+Requests are saved in Supabase and shown in the admin **Food stand requests**
+tab, with contact details and New, Contacted, and Closed statuses. New requests
+also appear as a follow-up prompt on the admin overview. Email uses the existing
+`RESEND_API_KEY` and `EMAIL_FROM` configuration as an optional alert; a failed
+email does not discard a saved request.
+
+**Existing Supabase projects:** run
+[`supabase/migration-004-food-stand-requests.sql`](supabase/migration-004-food-stand-requests.sql)
+in the SQL Editor before deploying this change. New installations using
+`schema.sql` already include the table. Volunteers can read only their own
+requests and cannot change status; administrators can read and update all requests.
+Requests submitted before this migration were emailed only and are not backfilled.
 
 ### Volunteer hours and signatures
 
