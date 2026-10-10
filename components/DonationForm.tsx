@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Turnstile, type TurnstileInstance } from "@marsidev/react-turnstile";
 import { useRouter } from "next/navigation";
 import { AddressAutocomplete } from "./AddressAutocomplete";
 import { Alert, Spinner } from "./ui";
@@ -28,6 +29,10 @@ export function DonationForm() {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const turnstile = useRef<TurnstileInstance | undefined>(undefined);
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaError, setCaptchaError] = useState<string | null>(null);
   const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
   const [address, setAddress] = useState("");
   // Earliest selectable pickup date = today + 2 days, so there's time to arrange
@@ -41,7 +46,12 @@ export function DonationForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submitting) return;
     setError(null);
+    if (!siteKey || !captchaToken) {
+      setCaptchaError("Please complete the security check before submitting.");
+      return;
+    }
     setSubmitting(true);
 
     const fd = new FormData(e.currentTarget);
@@ -66,6 +76,7 @@ export function DonationForm() {
       notes: String(fd.get("notes") ?? ""),
       earliest_pickup,
       latest_pickup,
+      turnstile_token: captchaToken,
     };
 
     try {
@@ -85,6 +96,9 @@ export function DonationForm() {
       router.push(`/donate/confirmation?id=${data.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unexpected error.");
+      // Tokens are single-use. Keep the form values and obtain a fresh token.
+      setCaptchaToken("");
+      turnstile.current?.reset();
       setSubmitting(false);
     }
   }
@@ -173,7 +187,35 @@ export function DonationForm() {
         <textarea id="notes" name="notes" rows={3} className="input" placeholder="Access instructions, parking, etc." />
       </div>
 
-      <button type="submit" className="btn-primary w-full" disabled={submitting}>
+      <div aria-label="Security check">
+        {siteKey ? (
+          <Turnstile
+            ref={turnstile}
+            siteKey={siteKey}
+            options={{ action: "pickup_request", theme: "light", size: "flexible", refreshExpired: "auto" }}
+            onSuccess={(token) => { setCaptchaToken(token); setCaptchaError(null); }}
+            onExpire={() => setCaptchaToken("")}
+            onError={() => {
+              setCaptchaToken("");
+              setCaptchaError("The security check couldn't load. Please retry or refresh the page.");
+            }}
+            onTimeout={() => { setCaptchaToken(""); setCaptchaError("The security check timed out. Please retry."); }}
+          />
+        ) : (
+          <Alert kind="error">The security check is temporarily unavailable. Please try again later.</Alert>
+        )}
+        {siteKey && captchaError && (
+          <div className="mt-2" role="alert">
+            <p className="text-sm text-red-700">{captchaError}</p>
+            <button type="button" className="mt-1 text-sm underline" disabled={submitting}
+              onClick={() => { setCaptchaToken(""); setCaptchaError(null); turnstile.current?.reset(); }}>
+              Retry security check
+            </button>
+          </div>
+        )}
+      </div>
+
+      <button type="submit" className="btn-primary w-full" disabled={submitting || !siteKey || !captchaToken}>
         {submitting ? <Spinner label="Submitting" /> : "Submit donation"}
       </button>
     </form>

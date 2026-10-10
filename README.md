@@ -186,6 +186,22 @@ placeholder, haversine distances computed locally).
 
 ## Local development
 
+### Pickup form bot protection
+
+Create a **Managed** widget in [Cloudflare Turnstile](https://dash.cloudflare.com/)
+and allow your website hostname (for example, `donate.foodstandinapark.org`). Set
+`NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` from that same widget
+in `.env.local` and Vercel's environment variables, then restart locally or
+redeploy. Keep the secret key private. Restrict the widget to your allowed hostnames
+in Cloudflare; add preview hostnames if you use preview deployments.
+
+Pickup submissions require server verification before geocoding, saving, or
+sending emails. Missing configuration or a verification outage blocks submissions.
+Failed submissions preserve form values and reset the single-use security token.
+No database migration is needed. Run `npm run test:turnstile` for mocked checks.
+For local development, use [Cloudflare's test keys](https://developers.cloudflare.com/turnstile/troubleshooting/testing/)
+in `.env.local`; never use test keys in production.
+
 ```bash
 npm install
 cp .env.example .env.local   # then fill in values

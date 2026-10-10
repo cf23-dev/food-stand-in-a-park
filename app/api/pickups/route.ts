@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { pickupRequestSchema } from "@/lib/validation";
+import { verifyPickupTurnstile } from "@/lib/turnstile";
 import { geocodeAddress } from "@/lib/maps";
 import { distanceMiles, formatMiles } from "@/lib/geo";
 import {
@@ -27,6 +28,12 @@ export async function POST(req: Request) {
     );
   }
   const input = parsed.data;
+
+  const token = (body as Record<string, unknown>).turnstile_token;
+  const verification = await verifyPickupTurnstile(token);
+  if (!verification.success) {
+    return NextResponse.json({ error: verification.error }, { status: verification.status });
+  }
 
   // The donor flow writes with the service-role key. If env vars are missing
   // (or the dev server wasn't restarted after editing .env.local), fail clearly

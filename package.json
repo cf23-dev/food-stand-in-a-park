@@ -10,6 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test:hours": "tsx scripts/test-volunteer-hours.ts",
+    "test:turnstile": "tsx scripts/test-turnstile.ts",
     "seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
