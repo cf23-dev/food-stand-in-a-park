@@ -2,22 +2,28 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, EmptyState, StatusBadge } from "./ui";
+import { Alert, EmptyState } from "./ui";
+import { AdminHourRequests } from "./AdminHourRequests";
+import type { HourEntry } from "@/lib/hours";
 import { FOOD_TYPES } from "@/lib/types";
 import type { Feedback, FoodBank, PickupRequest, PickupStatus, Profile } from "@/lib/types";
 
 export type FeedbackRow = Feedback & { pickup: { food_type: string } | null };
 
-type Tab = "overview" | "pickups" | "volunteers" | "foodbanks" | "feedback";
+type Tab = "overview" | "pickups" | "volunteers" | "foodbanks" | "feedback" | "hours";
 
 interface Props {
   pickups: PickupRequest[];
   volunteers: Profile[];
   foodBanks: FoodBank[];
   feedback: FeedbackRow[];
+  hourEntries: HourEntry[];
+  hoursError?: string;
+  adminName: string;
+  adminId: string;
 }
 
-export function AdminDashboard({ pickups, volunteers, foodBanks, feedback }: Props) {
+export function AdminDashboard({ pickups, volunteers, foodBanks, feedback, hourEntries, hoursError, adminName, adminId }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +64,7 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback }: Pro
           ["volunteers", `Volunteers (${volunteers.length})`],
           ["foodbanks", `Food banks (${foodBanks.length})`],
           ["feedback", `Feedback (${feedback.length})`],
+          ["hours", `Hour requests (${hourEntries.filter(e => e.status === "pending").length})`],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
@@ -74,6 +81,7 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback }: Pro
       </div>
 
       <div className="mt-6">
+        {tab === "hours" && <AdminHourRequests entries={hourEntries} signerName={adminName} adminId={adminId} loadError={hoursError} />}
         {tab === "overview" && (
           <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -87,6 +95,9 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback }: Pro
                 <Alert kind="info">{stats.pendingVols} volunteer(s) awaiting approval in the Volunteers tab.</Alert>
               </div>
             )}
+            {hourEntries.some(e => e.status === "pending") && <div className="mt-4"><Alert kind="info">
+              {hourEntries.filter(e => e.status === "pending").length} hour request(s) awaiting signature. <button className="underline" onClick={() => setTab("hours")}>Review requests</button>
+            </Alert></div>}
             <div className="mt-6">
               <h2 className="font-semibold text-gray-900">Export reports</h2>
               <div className="mt-2 flex flex-wrap gap-2">

@@ -33,6 +33,43 @@ Built with **Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabas
 
 ## Features
 
+### Volunteer hours and signatures
+
+Volunteers can open **Hours & signatures** to log a service date, hours/minutes,
+activity, notes, and an optional school/program. Completed pickups offer a
+**Log hours** shortcut. Save a draft or request an administrator signature.
+Pending requests can be withdrawn to edit; returned requests include reviewer
+feedback. Signed records are locked and can be printed or saved as PDF.
+
+Admins review submissions in **Hour requests**, verify the service, and sign
+using a mouse, finger, or stylus. Clear and Undo are available; a typed signature
+supports keyboard users. The signature, signer account, name/title, signing time,
+and service details are stored privately. Another admin must review an admin's
+own service. Reviews create in-app notifications and optional email alerts.
+
+**Existing Supabase projects:** run
+[`supabase/migration-003-volunteer-hours.sql`](supabase/migration-003-volunteer-hours.sql)
+in the SQL Editor before using this feature. New projects running `schema.sql`
+already include it. No new environment variables or storage buckets are needed.
+This migration also prevents self-assigned admin roles through profile updates
+or signup metadata. Provision admins through the SQL Editor as described below.
+Account/claim deletion is restricted when service records reference it, preserving
+signed records and their audit history.
+
+Hour entries and review events are readable only by the owner and admins. All
+mutations run through a validated database function, with row locking and version
+checks to prevent stale edits or a signature racing with a withdrawal. Each
+completed pickup may have one linked hour entry; manual service entries are also
+supported. Signed documents use the volunteer name captured at submission.
+Signing timestamps on printable records use America/Los_Angeles.
+
+Verification: `npm run typecheck`, `npm run build`, and `npm run test:hours`.
+The hour tests run the actual migration and role-based workflow in an isolated
+PostgreSQL instance using PGlite; they never connect to a live Supabase project.
+
+`POST /api/hours` accepts validated create/save/request/withdraw/delete/return/sign
+commands. `/volunteer/hours/[id]` shows a signed record to its owner or an admin.
+
 | Area | Highlights |
 | --- | --- |
 | Donor | Public pickup form, address autocomplete, confirmation page, confirmation email, auto status `Open`, nearest-food-bank suggestion |

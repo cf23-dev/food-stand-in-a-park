@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth";
 import { AdminDashboard, type FeedbackRow } from "@/components/AdminDashboard";
 import type { FoodBank, PickupRequest, Profile } from "@/lib/types";
+import type { HourEntry } from "@/lib/hours";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export default async function AdminPage() {
   if (profile.role !== "admin") redirect("/volunteer/dashboard");
 
   const supabase = await createClient();
-  const [pickupsRes, volunteersRes, banksRes, feedbackRes] = await Promise.all([
+  const [pickupsRes, volunteersRes, banksRes, feedbackRes, hoursRes] = await Promise.all([
     supabase.from("pickup_requests").select("*").order("created_at", { ascending: false }),
     supabase.from("profiles").select("*").eq("role", "volunteer").order("created_at", { ascending: false }),
     supabase.from("food_banks").select("*").order("name"),
@@ -20,6 +21,7 @@ export default async function AdminPage() {
       .from("feedback")
       .select("*, pickup:pickup_requests(food_type)")
       .order("created_at", { ascending: false }),
+    supabase.from("volunteer_hours").select("*, claim:volunteer_claims(completed_at, pickup:pickup_requests(food_type,address))").neq("status", "draft").order("updated_at", { ascending: false }),
   ]);
 
   return (
@@ -28,6 +30,10 @@ export default async function AdminPage() {
       volunteers={(volunteersRes.data as Profile[]) ?? []}
       foodBanks={(banksRes.data as FoodBank[]) ?? []}
       feedback={(feedbackRes.data as unknown as FeedbackRow[]) ?? []}
+      hourEntries={(hoursRes.data as HourEntry[]) ?? []}
+      hoursError={hoursRes.error ? "Hours could not be loaded. Run supabase/migration-003-volunteer-hours.sql in Supabase, then refresh." : undefined}
+      adminName={profile.name}
+      adminId={profile.id}
     />
   );
 }

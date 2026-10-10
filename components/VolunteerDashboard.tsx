@@ -4,12 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PickupMap } from "./PickupMap";
+import { VolunteerHours } from "./VolunteerHours";
+import type { HourEntry } from "@/lib/hours";
 import { Alert, EmptyState, Spinner, StatusBadge } from "./ui";
 import { distanceMiles, formatMiles, directionsUrl } from "@/lib/geo";
 import type { FoodBank, Notification, PickupRequest, Profile, VolunteerClaim } from "@/lib/types";
 
 type ClaimWithPickup = VolunteerClaim & { pickup: PickupRequest; food_bank: FoodBank | null };
-type Tab = "available" | "active" | "history" | "impact";
+type Tab = "available" | "active" | "history" | "impact" | "hours";
 
 interface Props {
   profile: Profile | null;
@@ -17,14 +19,17 @@ interface Props {
   claims: ClaimWithPickup[];
   foodBanks: FoodBank[];
   notifications: Notification[];
+  hourEntries: HourEntry[];
+  hoursError?: string;
 }
 
-export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, notifications }: Props) {
+export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, notifications, hourEntries, hoursError }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("available");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [hourPrefill, setHourPrefill] = useState<string | null>(null);
 
   const home = profile?.latitude != null && profile?.longitude != null
     ? { latitude: profile.latitude, longitude: profile.longitude }
@@ -113,7 +118,7 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
       {unapproved && (
         <div className="mt-4">
           <Alert kind="info">
-            Your account is pending admin approval. You can browse pickups, but you'll be
+            Your account is pending admin approval. You can browse pickups, but you’ll be
             able to claim them once an admin approves you.
           </Alert>
         </div>
@@ -128,11 +133,12 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
       <NotificationsBar notifications={notifications} />
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-1 border-b border-gray-200" role="tablist">
+      <div className="mt-6 flex gap-1 overflow-x-auto border-b border-gray-200" role="tablist">
         {([
           ["available", `Available (${pickupsWithDistance.length})`],
           ["active", `My pickups (${active.length})`],
           ["history", `History (${completed.length})`],
+          ["hours", "Hours & signatures"],
           ["impact", "Impact"],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
@@ -140,7 +146,7 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium ${
+            className={`-mb-px whitespace-nowrap border-b-2 px-4 py-2 text-sm font-medium ${
               tab === key ? "border-brand-700 text-brand-700" : "border-transparent text-gray-500 hover:text-gray-800"
             }`}
           >
@@ -214,7 +220,7 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
               <EmptyState title="No completed pickups yet" />
             ) : (
               completed.map((c) => (
-                <div key={c.id} className="card flex items-center justify-between gap-4">
+                <div key={c.id} className="card flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="font-medium text-gray-900">{c.pickup?.food_type}</p>
                     <p className="text-sm text-gray-600">{c.pickup?.address}</p>
@@ -223,12 +229,19 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
                       {c.food_bank ? ` → ${c.food_bank.name}` : ""}
                     </p>
                   </div>
-                  <StatusBadge status="completed" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusBadge status="completed" />
+                    {!hourEntries.some(e => e.claim_id === c.id) && <button className="btn-secondary" onClick={() => { setHourPrefill(c.id); setTab("hours"); }}>Log hours</button>}
+                  </div>
                 </div>
               ))
             )}
           </div>
         )}
+
+        {tab === "hours" && <VolunteerHours entries={hourEntries} loadError={hoursError}
+          pickups={completed.map(c => ({ id: c.id, completed_at: c.completed_at!, pickup: c.pickup }))}
+          prefill={hourPrefill} onPrefillUsed={() => setHourPrefill(null)} />}
 
         {tab === "impact" && (
           <div className="grid gap-4 sm:grid-cols-3">
@@ -362,7 +375,7 @@ function ActiveClaimCard({
               disabled={busy}
               onClick={() => onCancel(claim.pickup_id)}
             >
-              Can't make it? Release this pickup
+              Can’t make it? Release this pickup
             </button>
             <p className="mt-1 text-center text-xs text-gray-400">
               You can release a pickup up to 24 hours before the pickup time.
@@ -371,7 +384,7 @@ function ActiveClaimCard({
         )}
         {cancelClosed && (
           <p className="text-center text-xs text-gray-400">
-            It's within 24 hours of the pickup time, so this can no longer be released.
+            It’s within 24 hours of the pickup time, so this can no longer be released.
             Please contact us if you have an emergency.
           </p>
         )}

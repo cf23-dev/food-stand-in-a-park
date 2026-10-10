@@ -80,3 +80,15 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-rise { animation: none; }
 }
+
+@media print {
+  body:has(.service-record) header,
+  body:has(.service-record) footer,
+  body:has(.service-record) .record-actions,
+  body:has(.service-record) a[href="#main"] { display: none !important; }
+  .service-record { max-width: none; padding: 0; }
+  .service-record article { border: 0; padding: 0; }
+  .service-record article > div:last-of-type { break-inside: avoid; }
+  .service-record svg { max-width: 400px; }
+  @page { margin: 18mm; }
+}
