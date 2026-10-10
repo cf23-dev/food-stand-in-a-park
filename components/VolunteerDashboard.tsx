@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PickupMap } from "./PickupMap";
 import { VolunteerHours } from "./VolunteerHours";
+import { FoodStandOpportunity } from "./FoodStandOpportunity";
 import type { HourEntry } from "@/lib/hours";
 import { Alert, EmptyState, Spinner, StatusBadge } from "./ui";
 import { distanceMiles, formatMiles, directionsUrl } from "@/lib/geo";
 import type { FoodBank, Notification, PickupRequest, Profile, VolunteerClaim } from "@/lib/types";
 
 type ClaimWithPickup = VolunteerClaim & { pickup: PickupRequest; food_bank: FoodBank | null };
-type Tab = "available" | "active" | "history" | "impact" | "hours";
+type Tab = "available" | "active" | "history" | "impact" | "hours" | "food-stand";
 
 interface Props {
   profile: Profile | null;
@@ -21,11 +22,12 @@ interface Props {
   notifications: Notification[];
   hourEntries: HourEntry[];
   hoursError?: string;
+  initialFoodStand?: boolean;
 }
 
-export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, notifications, hourEntries, hoursError }: Props) {
+export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, notifications, hourEntries, hoursError, initialFoodStand = false }: Props) {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("available");
+  const [tab, setTab] = useState<Tab>(initialFoodStand ? "food-stand" : "available");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -139,6 +141,7 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
           ["active", `My pickups (${active.length})`],
           ["history", `History (${completed.length})`],
           ["hours", "Hours & signatures"],
+          ["food-stand", "Start a food stand"],
           ["impact", "Impact"],
         ] as [Tab, string][]).map(([key, label]) => (
           <button
@@ -156,6 +159,7 @@ export function VolunteerDashboard({ profile, openPickups, claims, foodBanks, no
       </div>
 
       <div className="mt-6">
+        {tab === "food-stand" && <FoodStandOpportunity profile={profile} />}
         {tab === "available" && (
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="order-2 space-y-3 lg:order-1">

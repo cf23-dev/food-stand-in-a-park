@@ -33,6 +33,20 @@ Built with **Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabas
 
 ## Features
 
+### Organization pages and food stand opportunities
+
+`/about` preserves the mission and story from foodstandinapark.org. `/support-us`
+uses the same PayPal recipient and the original Zelle, PayPal, and Venmo QR codes.
+Both pages are linked in the header and footer; the footer includes EIN 88-3450553.
+
+Volunteers can open **Start a food stand** in their dashboard and submit their
+name, age, phone, state/ZIP, referral, and optional updates preference. The
+authenticated `/api/food-stand-interest` endpoint sends the details to
+`contact@foodstandinapark.org`, using the signed-in account email as reply-to.
+It uses the existing `RESEND_API_KEY` and `EMAIL_FROM` configuration, requires
+no database migration, and reports delivery failures instead of claiming success.
+The form provides a direct contact email when sending is unavailable.
+
 ### Volunteer hours and signatures
 
 In the admin **Pickups** tab, select individual pickups or use the header checkbox

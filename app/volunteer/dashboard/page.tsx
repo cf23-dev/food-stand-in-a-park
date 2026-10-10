@@ -6,12 +6,13 @@ import type { FoodBank, Notification, PickupRequest, Profile, VolunteerClaim } f
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  const initialFoodStand = (await searchParams).tab === "food-stand";
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/volunteer/login?next=/volunteer/dashboard");
+  if (!user) redirect(`/volunteer/login?next=${encodeURIComponent(initialFoodStand ? "/volunteer/dashboard?tab=food-stand" : "/volunteer/dashboard")}`);
 
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
@@ -26,6 +27,7 @@ export default async function DashboardPage() {
 
   return (
     <VolunteerDashboard
+      initialFoodStand={initialFoodStand}
       profile={(profile as Profile) ?? null}
       openPickups={(openRes.data as PickupRequest[]) ?? []}
       claims={(claimsRes.data as (VolunteerClaim & { pickup: PickupRequest; food_bank: FoodBank | null })[]) ?? []}

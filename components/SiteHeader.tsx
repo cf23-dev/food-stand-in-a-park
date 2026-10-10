@@ -19,18 +19,24 @@ export async function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur">
       <nav
-        className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3"
+        className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3"
         aria-label="Main"
       >
         <Link href="/" className="flex items-center gap-2 font-bold text-brand-800">
           <img src="/logo.png" alt="" className="h-8 w-auto" />
           <span>Food Stand in a Park</span>
         </Link>
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex w-full flex-wrap items-center gap-1 sm:gap-2 lg:w-auto">
+          <Link href="/about" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            About
+          </Link>
+          <Link href="/support-us" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
+            Support us
+          </Link>
           <Link href="/donate" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
             Donate
           </Link>
-          <Link href="/food-banks" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 sm:block">
+          <Link href="/food-banks" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
             Food banks
           </Link>
 
