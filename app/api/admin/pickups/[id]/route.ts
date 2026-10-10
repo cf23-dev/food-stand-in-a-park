@@ -34,6 +34,9 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const admin = createAdminClient();
   const { error } = await admin.from("pickup_requests").delete().eq("id", id);
-  if (error) return NextResponse.json({ error: "Delete failed." }, { status: 500 });
+  if (error?.code === "23503") {
+    return NextResponse.json({ error: "Pickups linked to volunteer hour records cannot be deleted. You can cancel the pickup instead." }, { status: 409 });
+  }
+  if (error) return NextResponse.json({ error: "Delete failed. Please try again." }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

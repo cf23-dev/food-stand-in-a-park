@@ -35,6 +35,12 @@ Built with **Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · Supabas
 
 ### Volunteer hours and signatures
 
+In the admin **Pickups** tab, select individual pickups or use the header checkbox
+to select all, then choose **Delete selected** and confirm. Successful deletions
+are removed immediately; failures remain selected. Pickups linked to volunteer
+hour records cannot be deleted, preserving service records. This selection
+feature uses the existing admin delete endpoint and requires no new migration.
+
 Volunteers can open **Hours & signatures** to log a service date, hours/minutes,
 activity, notes, and an optional school/program. Completed pickups offer a
 **Log hours** shortcut. Save a draft or request an administrator signature.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, EmptyState } from "./ui";
 import { AdminHourRequests } from "./AdminHourRequests";
@@ -23,10 +23,74 @@ interface Props {
   adminId: string;
 }
 
-export function AdminDashboard({ pickups, volunteers, foodBanks, feedback, hourEntries, hoursError, adminName, adminId }: Props) {
+export function AdminDashboard({ pickups: receivedPickups, volunteers, foodBanks, feedback, hourEntries, hoursError, adminName, adminId }: Props) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("overview");
   const [error, setError] = useState<string | null>(null);
+  const [selectedPickups, setSelectedPickups] = useState<Set<string>>(() => new Set());
+  const [deletedPickups, setDeletedPickups] = useState<Set<string>>(() => new Set());
+  const [deletingPickups, setDeletingPickups] = useState(false);
+  const [pickupNotice, setPickupNotice] = useState<string | null>(null);
+  const deletionLock = useRef(false);
+  const pickups = receivedPickups.filter(p => !deletedPickups.has(p.id));
+  const selectedIds = pickups.filter(p => selectedPickups.has(p.id)).map(p => p.id);
+  const allSelected = pickups.length > 0 && selectedIds.length === pickups.length;
+
+  function togglePickup(id: string) {
+    setSelectedPickups(current => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  async function deletePickups(ids: string[]) {
+    if (!ids.length || deletionLock.current) return;
+    deletionLock.current = true;
+    const prompt = ids.length === 1
+      ? `Delete the pickup from ${pickups.find(p => p.id === ids[0])?.donor_name ?? "this donor"}?`
+      : `Delete ${ids.length} selected pickups?`;
+    if (!window.confirm(`${prompt} Related claims and pickup notifications will also be removed. This cannot be undone.`)) {
+      deletionLock.current = false;
+      return;
+    }
+    setDeletingPickups(true);
+    setError(null);
+    setPickupNotice(null);
+    const deleted: string[] = [];
+    const failed: { id: string; message: string }[] = [];
+    try {
+      // Bound concurrency and keep individual failures visible without rolling
+      // back successful deletions of unrelated pickups.
+      for (let offset = 0; offset < ids.length; offset += 5) {
+        const results = await Promise.all(ids.slice(offset, offset + 5).map(async id => {
+          try {
+            const res = await fetch(`/api/admin/pickups/${id}`, { method: "DELETE" });
+            const data = await res.json().catch(() => ({}));
+            return res.ok ? { id, ok: true as const } : { id, ok: false as const, message: data.error ?? "Could not delete this pickup." };
+          } catch {
+            return { id, ok: false as const, message: "Connection interrupted. Refresh to check whether this pickup was deleted." };
+          }
+        }));
+        for (const result of results) {
+          if (result.ok) deleted.push(result.id); else failed.push({ id: result.id, message: result.message });
+        }
+      }
+      setDeletedPickups(current => new Set([...current, ...deleted]));
+      setSelectedPickups(current => {
+        const next = new Set(current);
+        for (const id of deleted) next.delete(id);
+        for (const failure of failed) next.add(failure.id);
+        return next;
+      });
+      if (deleted.length) setPickupNotice(`${deleted.length} pickup${deleted.length === 1 ? "" : "s"} deleted.`);
+      if (failed.length) setError(`${failed.length} pickup${failed.length === 1 ? " could" : "s could"} not be deleted and remain selected. ${Array.from(new Set(failed.map(f => f.message))).join(" ")}`);
+      router.refresh();
+    } finally {
+      deletionLock.current = false;
+      setDeletingPickups(false);
+    }
+  }
 
   async function call(url: string, method: string, body?: unknown) {
     setError(null);
@@ -110,10 +174,30 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback, hourE
         )}
 
         {tab === "pickups" && (
-          <div className="overflow-x-auto">
+          <div className="space-y-4">
+            {pickupNotice && <Alert kind="success">{pickupNotice}</Alert>}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-gray-600" role="status">{selectedIds.length} pickup{selectedIds.length === 1 ? "" : "s"} selected</p>
+              <div className="flex flex-wrap gap-2">
+                <button className="btn-secondary" disabled={deletingPickups || !selectedIds.length} onClick={() => setSelectedPickups(new Set())}>Clear selection</button>
+                <button className="btn-danger" disabled={deletingPickups || !selectedIds.length} onClick={() => deletePickups(selectedIds)}>
+                  {deletingPickups ? "Deleting…" : `Delete selected${selectedIds.length ? ` (${selectedIds.length})` : ""}`}
+                </button>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 text-left text-gray-500">
+                  <th className="py-2 pr-3">
+                    <label className="inline-flex h-11 w-11 items-center justify-center">
+                    <input type="checkbox" className="h-4 w-4 accent-brand-700" aria-label="Select all pickups" checked={allSelected}
+                      aria-checked={selectedIds.length > 0 && !allSelected ? "mixed" : allSelected}
+                      ref={node => { if (node) node.indeterminate = selectedIds.length > 0 && !allSelected; }}
+                      disabled={deletingPickups || !pickups.length}
+                      onChange={() => setSelectedPickups(allSelected ? new Set() : new Set(pickups.map(p => p.id)))} />
+                    </label>
+                  </th>
                   <th className="py-2 pr-3">Donor</th>
                   <th className="py-2 pr-3">Food</th>
                   <th className="py-2 pr-3">Address</th>
@@ -124,7 +208,14 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback, hourE
               </thead>
               <tbody>
                 {pickups.map((p) => (
-                  <tr key={p.id} className="border-b border-gray-100">
+                  <tr key={p.id} className={`border-b border-gray-100 ${selectedPickups.has(p.id) ? "bg-brand-50" : ""}`}>
+                    <td className="py-2 pr-3">
+                      <label className="inline-flex h-11 w-11 items-center justify-center">
+                      <input type="checkbox" className="h-4 w-4 accent-brand-700"
+                        aria-label={`Select pickup from ${p.donor_name}: ${p.food_type}, ${p.address}`}
+                        checked={selectedPickups.has(p.id)} disabled={deletingPickups} onChange={() => togglePickup(p.id)} />
+                      </label>
+                    </td>
                     <td className="py-2 pr-3">{p.donor_name}<br /><span className="text-gray-400">{p.donor_email}</span></td>
                     <td className="py-2 pr-3">{p.food_type}{p.quantity ? ` (${p.quantity})` : ""}</td>
                     <td className="py-2 pr-3 max-w-48 truncate" title={p.address}>{p.address}</td>
@@ -133,6 +224,8 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback, hourE
                       <select
                         className="rounded-md border border-gray-300 px-2 py-1 text-xs"
                         value={p.status}
+                        aria-label={`Status for pickup from ${p.donor_name}`}
+                        disabled={deletingPickups}
                         onChange={(e) => call(`/api/admin/pickups/${p.id}`, "PATCH", { status: e.target.value as PickupStatus })}
                       >
                         <option value="open">Open</option>
@@ -143,12 +236,9 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback, hourE
                     </td>
                     <td className="py-2 pr-3">
                       <button
-                        className="text-xs font-medium text-red-600 hover:underline"
-                        onClick={() => {
-                          if (confirm(`Delete this pickup from ${p.donor_name}? This can't be undone.`)) {
-                            call(`/api/admin/pickups/${p.id}`, "DELETE");
-                          }
-                        }}
+                        className="text-xs font-medium text-red-600 hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+                        disabled={deletingPickups}
+                        onClick={() => deletePickups([p.id])}
                       >
                         Delete
                       </button>
@@ -157,6 +247,7 @@ export function AdminDashboard({ pickups, volunteers, foodBanks, feedback, hourE
                 ))}
               </tbody>
             </table>
+            </div>
             {pickups.length === 0 && <EmptyState title="No pickup requests yet" />}
           </div>
         )}

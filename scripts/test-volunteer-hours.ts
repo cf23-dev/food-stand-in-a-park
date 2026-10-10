@@ -34,11 +34,15 @@ try {
     create table public.profiles(id uuid primary key, email text, name text not null, role public.user_role not null, approved boolean default false);
     create function public.is_admin() returns boolean language sql stable security definer set search_path = '' as $$
       select exists(select 1 from public.profiles where id = auth.uid() and role = 'admin')$$;
-    create table public.volunteer_claims(id uuid primary key, volunteer_id uuid references public.profiles, completed_at timestamptz);
-    create table public.notifications(id uuid primary key default gen_random_uuid(), volunteer_id uuid, title text, body text);
+    create table public.pickup_requests(id uuid primary key);
+    create table public.volunteer_claims(id uuid primary key, volunteer_id uuid references public.profiles, completed_at timestamptz,
+      pickup_id uuid references public.pickup_requests(id) on delete cascade);
+    create table public.notifications(id uuid primary key default gen_random_uuid(), volunteer_id uuid, title text, body text,
+      pickup_id uuid references public.pickup_requests(id) on delete cascade);
+    create table public.feedback(id uuid primary key, pickup_id uuid references public.pickup_requests(id) on delete set null);
     insert into public.profiles values('${volunteer}', 'volunteer@test.local', 'Test Volunteer', 'volunteer', true),
       ('${other}', 'other@test.local', 'Other Volunteer', 'volunteer', true), ('${admin}', 'admin@test.local', 'Test Admin', 'admin', true);
-    insert into public.volunteer_claims values('${claim}', '${volunteer}', now()), ('${pendingClaim}', '${volunteer}', null);
+    insert into public.volunteer_claims(id, volunteer_id, completed_at) values('${claim}', '${volunteer}', now()), ('${pendingClaim}', '${volunteer}', null);
     alter table public.profiles enable row level security;
     create policy self_profile on public.profiles for all to authenticated using(id = auth.uid() or public.is_admin()) with check(id = auth.uid() or public.is_admin());
     grant select, update on public.profiles to authenticated;
@@ -120,6 +124,23 @@ try {
     create trigger signup_test after insert on auth.test_users for each row execute function public.handle_new_user();
     insert into auth.test_users values('10000000-0000-4000-8000-000000000004', 'new@test.local', '{"name":"New User","role":"admin"}');`);
   assert.equal((await db.query<{ role: string }>("select role from public.profiles where email = 'new@test.local'")).rows[0].role, "volunteer"); checks++;
+  const protectedPickup = "40000000-0000-4000-8000-000000000001";
+  const removablePickup = "40000000-0000-4000-8000-000000000002";
+  await db.exec(`insert into public.pickup_requests values('${protectedPickup}'), ('${removablePickup}');
+    update public.volunteer_claims set pickup_id = '${protectedPickup}' where id = '${claim}';
+    insert into public.volunteer_claims(id, volunteer_id, pickup_id) values('20000000-0000-4000-8000-000000000003', '${other}', '${removablePickup}');
+    insert into public.notifications(volunteer_id, title, pickup_id) values('${other}', 'Pickup notification', '${removablePickup}');
+    insert into public.feedback values('50000000-0000-4000-8000-000000000001', '${removablePickup}');`);
+  await assert.rejects(() => db.query("delete from public.pickup_requests where id = $1", [protectedPickup]),
+    (err: unknown) => (err as { code: string }).code === "23503"); checks++;
+  assert.equal((await db.query("select * from public.pickup_requests where id = $1", [protectedPickup])).rows.length, 1); checks++;
+  assert.equal((await db.query("select * from public.volunteer_hours where id = $1 and status = 'signed'", [id])).rows.length, 1); checks++;
+  assert.equal((await db.query("select * from public.volunteer_claims where id = $1", [claim])).rows.length, 1); checks++;
+  await db.query("delete from public.pickup_requests where id = $1", [removablePickup]);
+  assert.equal((await db.query("select * from public.pickup_requests where id = $1", [removablePickup])).rows.length, 0); checks++;
+  assert.equal((await db.query("select * from public.volunteer_claims where pickup_id = $1", [removablePickup])).rows.length, 0); checks++;
+  assert.equal((await db.query("select * from public.notifications where pickup_id = $1", [removablePickup])).rows.length, 0); checks++;
+  assert.equal((await db.query<{ pickup_id: string | null }>("select pickup_id from public.feedback")).rows[0].pickup_id, null); checks++;
   console.log(`Passed ${checks} volunteer hour validation, workflow, signature, privacy, audit, and authority checks.`);
 } finally { await db.close(); }
 }
